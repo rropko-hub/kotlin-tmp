@@ -3,7 +3,6 @@ package mastermind
 data class Evaluation(val rightPosition: Int, val wrongPosition: Int)
 
 fun evaluateGuess(secret: String, guess: String): Evaluation {
-
     if (secret.length != guess.length) {
         throw Exception("Incorrect length of guess string. must be " + secret.length);
     }
