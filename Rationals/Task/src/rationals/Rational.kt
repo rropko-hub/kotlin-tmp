@@ -1,5 +1,6 @@
 package rationals
 
+import com.sun.org.apache.xpath.internal.operations.Bool
 import java.math.BigInteger
 
 
@@ -39,47 +40,56 @@ fun main() {
 
 data class Rational(val numerator: BigInteger, val denominator: BigInteger = BigInteger.ONE) {
 
+    val hasFullDivision: Boolean = false;
+
+
     private fun rationalToStringConverter(numerat: BigInteger, denumerat: BigInteger): String {
 
         if (denumerat == BigInteger.ONE) return "$numerat";
 
         var numeratAbs: BigInteger = numerat.abs();
         var denumeratAbs: BigInteger = denumerat.abs();
-        var iter: BigInteger = BigInteger.valueOf(2);
 
-        if (numeratAbs > denumeratAbs) {
-            while (iter <= denumeratAbs) {
-                if (numeratAbs % iter == BigInteger.ZERO && denumeratAbs % iter == BigInteger.ZERO) {
+        val hasMinusSign: Boolean = (numerat.signum() < 0 && denumerat.signum() >= 0) || (denumerat.signum() < 0 && numerat.signum() >= 0);
 
-                    numeratAbs /= iter;
-                    denumeratAbs /= iter;
+        if (numeratAbs == denumeratAbs) return if (hasMinusSign) "-1" else "1";
 
-                    return rationalToStringConverter(numeratAbs, denumeratAbs);
-                }
+        when (BigInteger.ZERO) {
+            denumerat % numerat -> {
 
-                iter = iter.add(BigInteger.ONE);
+                numeratAbs /= numerat;
+                denumeratAbs /= numerat;
+
+                return rationalToStringConverter(numeratAbs, denumeratAbs);
             }
 
-            return if (numerator < BigInteger.ZERO) "-$numeratAbs/$denumeratAbs" else "$numeratAbs/$denumeratAbs";
+            numerat % denumerat -> {
+                numeratAbs /= denumerat;
+                denumeratAbs /= denumerat;
 
-
-        } else if (denumeratAbs > numeratAbs) {
-            while (iter <= numeratAbs) {
-                if (numeratAbs % iter == BigInteger.ZERO && denumeratAbs % iter == BigInteger.ZERO) {
-
-                    numeratAbs /= iter;
-                    denumeratAbs /= iter;
-
-                    return rationalToStringConverter(numeratAbs, denumeratAbs);
-                }
-
-                iter = iter.add(BigInteger.ONE);
+                return rationalToStringConverter(numeratAbs, denumeratAbs);
             }
 
-            return if (numerator < BigInteger.ZERO) "-$numeratAbs/$denumeratAbs" else "$numeratAbs/$denumeratAbs";
+            else -> {
+                val compareIter = if (numeratAbs > denumeratAbs) denumeratAbs else numeratAbs;
+
+                var iter: BigInteger = BigInteger.valueOf(2);
+
+                while (iter <= compareIter) {
+                    if (numeratAbs % iter == BigInteger.ZERO && denumeratAbs % iter == BigInteger.ZERO) {
+
+                        numeratAbs /= iter;
+                        denumeratAbs /= iter;
+
+                        return rationalToStringConverter(numeratAbs, denumeratAbs);
+                    }
+
+                    iter = iter.add(BigInteger.ONE);
+                }
+            }
         }
 
-        return "1";
+        return if (hasMinusSign) "-$numeratAbs/$denumeratAbs" else "$numeratAbs/$denumeratAbs";
     }
 
     operator fun plus(rational: Rational): Rational {
