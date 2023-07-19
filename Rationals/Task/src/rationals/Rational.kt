@@ -1,7 +1,102 @@
 package rationals
 
-import com.sun.org.apache.xpath.internal.operations.Bool
 import java.math.BigInteger
+
+
+class Rational(private var numerator: BigInteger, private var denominator: BigInteger): Comparable<Rational> {
+
+    operator fun plus(other: Rational): Rational = run {
+        val newNumerator = numerator * other.denominator + denominator * other.numerator;
+        val newDenominator = denominator * other.denominator;
+
+        return Rational(newNumerator, newDenominator);
+    }
+
+    operator fun minus(other: Rational): Rational = run {
+        return this - other;
+    }
+
+    operator fun times(other: Rational): Rational = run {
+        val newNumerator = numerator *  other.numerator;
+        val newDenominator = denominator * other.denominator;
+
+        return Rational(newNumerator, newDenominator);
+    }
+
+    operator fun div(other: Rational): Rational = run {
+        return this * other.reciprocal();
+    }
+
+    operator fun unaryMinus(): Rational {
+        return Rational(-numerator, denominator);
+    }
+
+    private fun reciprocal(): Rational {
+        return Rational(denominator, numerator);
+    }
+
+    private fun gcd(numerator: BigInteger, denominator: BigInteger): BigInteger = run {
+        return if (denominator == BigInteger.ZERO) numerator else gcd(denominator, numerator.mod(denominator));
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return toString() == other.toString();
+    }
+
+    override fun toString(): String {
+        val sb = StringBuilder();
+        val gcdRes = gcd(numerator.abs(), denominator.abs());
+
+        if (denominator < BigInteger.ZERO) {
+            denominator *= BigInteger("-1");
+            numerator *= BigInteger("-1");
+        }
+
+        sb.append((numerator / gcdRes).toString());
+
+        if (denominator / gcdRes != BigInteger.ONE) {
+            sb.append("/");
+            sb.append((denominator / gcdRes).toString());
+        }
+
+        return sb.toString();
+    }
+
+    override operator fun compareTo(other: Rational): Int {
+        val numeratorA = numerator * other.denominator;
+        val numeratorB = other.numerator * denominator;
+
+        return numeratorA.compareTo(numeratorB);
+    }
+
+}
+
+infix fun Int.divBy(i: Int): Rational {
+    return Rational(toBigInteger(), i.toBigInteger())
+}
+
+infix fun Long.divBy(l: Long): Rational {
+    return Rational(toBigInteger(), l.toBigInteger())
+}
+
+infix fun BigInteger.divBy(b: BigInteger): Rational {
+    return Rational(this, b)
+}
+
+fun String.toRational(): Rational = run {
+    val splitIndex = this.indexOf('/');
+
+    if (splitIndex > 0) {
+        val numerator = this.substring(0, splitIndex).toBigInteger();
+        val denominator = this.substring(splitIndex + 1).toBigInteger();
+
+        return Rational(numerator, denominator);
+    } else {
+        val numerator = this.toBigInteger();
+
+        return Rational(numerator, BigInteger.ONE);
+    }
+}
 
 
 fun main() {
@@ -36,134 +131,4 @@ fun main() {
 
     println("912016490186296920119201192141970416029".toBigInteger() divBy
             "1824032980372593840238402384283940832058".toBigInteger() == 1 divBy 2)
-}
-
-data class Rational(val numerator: BigInteger, val denominator: BigInteger = BigInteger.ONE) {
-
-    val hasFullDivision: Boolean = false;
-
-
-    private fun rationalToStringConverter(numerat: BigInteger, denumerat: BigInteger): String {
-
-        if (denumerat == BigInteger.ONE) return "$numerat";
-
-        var numeratAbs: BigInteger = numerat.abs();
-        var denumeratAbs: BigInteger = denumerat.abs();
-
-        val hasMinusSign: Boolean = (numerat.signum() < 0 && denumerat.signum() >= 0) || (denumerat.signum() < 0 && numerat.signum() >= 0);
-
-        if (numeratAbs == denumeratAbs) return if (hasMinusSign) "-1" else "1";
-
-        when (BigInteger.ZERO) {
-            denumerat % numerat -> {
-
-                numeratAbs /= numerat;
-                denumeratAbs /= numerat;
-
-                return rationalToStringConverter(numeratAbs, denumeratAbs);
-            }
-
-            numerat % denumerat -> {
-                numeratAbs /= denumerat;
-                denumeratAbs /= denumerat;
-
-                return rationalToStringConverter(numeratAbs, denumeratAbs);
-            }
-
-            else -> {
-                val compareIter = if (numeratAbs > denumeratAbs) denumeratAbs else numeratAbs;
-
-                var iter: BigInteger = BigInteger.valueOf(2);
-
-                while (iter <= compareIter) {
-                    if (numeratAbs % iter == BigInteger.ZERO && denumeratAbs % iter == BigInteger.ZERO) {
-
-                        numeratAbs /= iter;
-                        denumeratAbs /= iter;
-
-                        return rationalToStringConverter(numeratAbs, denumeratAbs);
-                    }
-
-                    iter = iter.add(BigInteger.ONE);
-                }
-            }
-        }
-
-        return if (hasMinusSign) "-$numeratAbs/$denumeratAbs" else "$numeratAbs/$denumeratAbs";
-    }
-
-    operator fun plus(rational: Rational): Rational {
-        val denominator = this.denominator * rational.denominator;
-        val numerator = denominator / this.denominator * this.numerator + denominator / rational.denominator * rational.numerator;
-
-        return Rational(numerator, denominator);
-    }
-
-    operator fun minus(rational: Rational): Rational {
-        val denominator = this.denominator * rational.denominator;
-        val numerator = denominator / this.denominator * this.numerator - denominator / rational.denominator * rational.numerator;
-
-        return Rational(numerator, denominator);
-    }
-
-    operator fun times(rational: Rational): Rational {
-        val denominator = this.denominator * rational.denominator;
-        val numerator = this.numerator * rational.numerator;
-
-        return Rational(numerator, denominator);
-    }
-
-    operator fun div(rational: Rational): Rational {
-        val denominator = this.denominator * rational.numerator;
-        val numerator = this.numerator * rational.denominator;
-
-        return Rational(numerator, denominator);
-    }
-
-    operator fun unaryMinus(): Rational {
-        val denominator = this.denominator;
-        val numerator = -this.numerator;
-
-        return Rational(numerator, denominator);
-    }
-
-    operator fun compareTo(rational: Rational): Int {
-        if (this.denominator == rational.denominator) {
-            return if (this.numerator < rational.numerator) -1 else 1;
-        }
-
-        val a = this.numerator * rational.denominator;
-        val b = this.denominator * rational.numerator;
-
-        return if (a < b) -1 else 1;
-    }
-
-    operator fun rangeTo(rational: Rational): Pair<Rational, Rational> {
-        return Pair(this, rational);
-    }
-
-    override fun toString(): String = rationalToStringConverter(numerator, denominator)
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true;
-
-        return !(other?.javaClass != javaClass || this.toString() != other.toString());
-    }
-}
-
-operator fun Pair<Rational, Rational>.contains(rational: Rational): Boolean {
-    return rational > this.first && rational < this.second;
-}
-
-infix fun Number.divBy(i: Number): Rational {
-    return Rational(BigInteger.valueOf(this.toLong()), BigInteger.valueOf(i.toLong()));
-}
-
-fun String.toRational(): Rational {
-    val ratElArr = this.split("/");
-
-    if (ratElArr[1].toBigInteger() == BigInteger.ZERO)
-        throw IllegalArgumentException("Denominator must not equal ZERO");
-
-    return Rational(ratElArr[0].toBigInteger(), ratElArr[1].toBigInteger());
 }
