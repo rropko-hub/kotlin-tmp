@@ -5,40 +5,24 @@ fun String.isNice(): Boolean {
     if (this.partition { it.isUpperCase() }.first.isNotEmpty())
         throw Exception("Must contains Big letters!!!");
 
-    val minVowelsCount = 3;
-    var currentVowelsCount = 0;
+    val vowels = listOf('a','e','i','o','u')
 
-    val revCharList: ArrayList<Char> = arrayListOf('u', 'a', 'e');
-    val contCharList: ArrayList<Char> = arrayListOf('a', 'e', 'i', 'o', 'u');
+    val doesNotContainsBuBaBe = !this.contains("bu")
+            && !this.contains("ba")
+            && !this.contains("be")
 
-    val arr: CharArray = this.toCharArray();
+    val containsAtLeastThreeVowels = this.count { vowels.contains(it) } >= 3
 
-    var hasCorrectContains: Boolean = true;
-    var hasCorrectVowels: Boolean = false;
-    var hasDoubleLetters: Boolean = false;
-
-    for (i in arr.indices) {
-        val current = arr[i];
-
-        if (contCharList.contains(current) && currentVowelsCount < minVowelsCount)
-            currentVowelsCount++;
-
-        if (i + 1 < arr.size) {
-            val next = arr[i + 1];
-
-            if (!hasDoubleLetters && current == next)
-                hasDoubleLetters = true;
-
-            if (hasCorrectContains && (current == 'b' && revCharList.contains(next)))
-                hasCorrectContains = false;
-        } else {
-            if (currentVowelsCount >= minVowelsCount) {
-                hasCorrectVowels = true;
+    var containsADoubleLetterFollowingEachOther = false
+    this.forEachIndexed { index, element ->
+        if(index != 0){
+            if(this.get(index - 1) == element) {
+                containsADoubleLetterFollowingEachOther = true
             }
         }
     }
 
-    return (hasCorrectContains && hasCorrectVowels)
-            || (hasCorrectContains && hasDoubleLetters)
-            || (hasCorrectVowels && hasDoubleLetters);
+    return listOf(doesNotContainsBuBaBe, containsAtLeastThreeVowels, containsADoubleLetterFollowingEachOther)
+        .filter { it }
+        .count() >= 2
 }
