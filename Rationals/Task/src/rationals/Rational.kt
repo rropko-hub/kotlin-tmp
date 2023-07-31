@@ -13,7 +13,11 @@ class Rational(private var numerator: BigInteger, private var denominator: BigIn
     }
 
     operator fun minus(other: Rational): Rational = run {
-        return this - other;
+        val firstNumerator = numerator *  other.denominator;
+        val bothDenominator = denominator * other.denominator;
+        val secondNumerator = other.numerator *  denominator;
+
+        return Rational(firstNumerator - secondNumerator, bothDenominator);
     }
 
     operator fun times(other: Rational): Rational = run {
