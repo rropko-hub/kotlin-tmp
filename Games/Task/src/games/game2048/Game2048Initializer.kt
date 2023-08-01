@@ -25,14 +25,15 @@ object RandomGame2048Initializer: Game2048Initializer<Int> {
      * If the board is full return null.
      */
     override fun nextValue(board: GameBoard<Int?>): Pair<Cell, Int>? {
-        val randomCell = getRandomCell(board)
-        val randomValue = generateRandomStartValue()
+        val randomCell = getRandomCell(board);
+        val randomValue = generateRandomStartValue();
 
-        var pair: Pair<Cell, Int>? = null
+        var pair: Pair<Cell, Int>? = null;
+
         if (randomCell != null) {
-            pair = Pair(randomCell, randomValue)
+            pair = Pair(randomCell, randomValue);
         }
-        return pair
+        return pair;
     }
 
     private fun getRandomCell(board: GameBoard<Int?>): Cell? {
@@ -41,9 +42,9 @@ object RandomGame2048Initializer: Game2048Initializer<Int> {
             .filter { board[it] == null }
 
         if (emptyCells.isEmpty()) {
-            return null
+            return null;
         }
-        val cell = emptyCells.shuffled(random).first()
-        return cell
+
+        return emptyCells.shuffled(random).first();
     }
 }
